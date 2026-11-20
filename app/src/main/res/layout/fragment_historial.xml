@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/smartcash_fondo">
+
+    <!-- Titulo de la pantalla -->
+    <TextView
+        android:id="@+id/txtTituloHistorial"
+        style="@style/Estilo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/historial_titulo" />
+
+    <!-- Descripcion -->
+    <TextView
+        style="@style/Estilo.Secundario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/historial_descripcion" />
+
+    <!-- Etiqueta del mes -->
+    <TextView
+        style="@style/Estilo.Etiqueta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/historial_mes" />
+
+    <!-- Seleccion del mes -->
+    <Spinner
+        android:id="@+id/spinnerMes"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_spinner"
+        android:contentDescription="@string/historial_mes" />
+
+    <!-- Etiqueta de categoria -->
+    <TextView
+        style="@style/Estilo.Etiqueta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/historial_categoria" />
+
+    <!-- Seleccion de categoria -->
+    <Spinner
+        android:id="@+id/spinnerCategoria"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_spinner"
+        android:contentDescription="@string/historial_categoria" />
+
+    <!-- Botones para los filtros -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnAplicarFiltros"
+            style="@style/Estilo.Boton.Primario"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="@string/historial_aplicar" />
+
+        <Button
+            android:id="@+id/btnLimpiarFiltros"
+            style="@style/Estilo.Boton.Secundario"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/historial_limpiar" />
+
+    </LinearLayout>
+
+    <!-- Titulo de la lista -->
+    <TextView
+        style="@style/Estilo.Subtitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/historial_movimientos" />
+
+    <!-- Contenedor de movimientos -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_tarjeta">
+
+        <!-- Lista de ingresos y gastos -->
+        <ListView
+            android:id="@+id/listaMovimientos"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:divider="@color/smartcash_divisor"
+            android:dividerHeight="1dp" />
+
+        <!-- Mensaje cuando no hay movimientos -->
+        <TextView
+            android:id="@+id/txtSinResultados"
+            style="@style/Estilo.Secundario"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="@string/historial_sin_resultados"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>
+

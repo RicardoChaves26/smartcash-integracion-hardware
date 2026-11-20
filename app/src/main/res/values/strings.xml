@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">SmartCash</string>
+    <string name="splash_lema">Controla tus ingresos y gastos</string>
+
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_historial">Historial</string>
+
+    <string name="barra_volver">Volver</string>
+
+    <string name="splash_logo">Logo de SmartCash</string>
+
+
+    <string name="historial_titulo">Historial</string>
+    <string name="historial_descripcion">Consulta tus ingresos y gastos registrados.</string>
+    <string name="historial_mes">Mes</string>
+    <string name="historial_categoria">Categoría</string>
+    <string name="historial_aplicar">Aplicar filtros</string>
+    <string name="historial_limpiar">Limpiar</string>
+    <string name="historial_movimientos">Movimientos</string>
+    <string name="historial_sin_resultados">No se encontraron resultados.</string>
+
+    <string name="historial_todos_meses">Todos los meses</string>
+    <string name="historial_todas_categorias">Todas las categorías</string>
+
+    <string name="inicio_saldo_disponible">Saldo disponible</string>
+    <string name="inicio_ingresos">Ingresos</string>
+    <string name="inicio_gastos">Gastos</string>
+    <string name="inicio_registrar_gasto">Registrar gasto</string>
+    <string name="inicio_registrar_ingreso">Registrar ingreso</string>
+    <string name="inicio_ultimos_movimientos">Últimos movimientos</string>
+
+    <string name="detalle_icono">Icono de la categoría</string>
+    <string name="detalle_tipo">Tipo</string>
+    <string name="detalle_categoria">Categoría</string>
+    <string name="detalle_fecha">Fecha</string>
+    <string name="detalle_nota">Nota</string>
+    <string name="detalle_editar">Editar movimiento</string>
+    <string name="detalle_eliminar">Eliminar movimiento</string>
+
+
+    <string name="formulario_gasto">↓ Gasto</string>
+    <string name="formulario_ingreso">↑ Ingreso</string>
+    <string name="formulario_nombre">Nombre</string>
+    <string name="formulario_nombre_hint">Ej. Supermercado</string>
+    <string name="formulario_monto">Monto</string>
+    <string name="formulario_monto_hint">₡ 0,00</string>
+    <string name="formulario_categoria">Categoría</string>
+    <string name="formulario_fecha">Fecha</string>
+    <string name="formulario_fecha_hint">dd/MM/yyyy</string>
+    <string name="formulario_nota">Nota</string>
+    <string name="formulario_nota_hint">Descripción del movimiento</string>
+    <string name="formulario_guardar">Guardar movimiento</string>
+    <string name="formulario_guardar_cambios">Guardar cambios</string>
+
+</resources>

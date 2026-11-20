@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.SmartCash" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/smartcash_primario</item>
+        <item name="colorSurface">@color/smartcash_superficie</item>
+        <item name="colorOnSurface">@color/smartcash_texto_principal</item>
+        <item name="colorSecondaryContainer">@color/smartcash_primario_fondo</item>
+        <item name="colorOnSecondaryContainer">@color/smartcash_primario</item>
+        <item name="android:colorBackground">@color/smartcash_fondo</item>
+        <item name="android:windowBackground">@color/smartcash_fondo</item>
+        <item name="android:textColorPrimary">@color/smartcash_texto_principal</item>
+        <item name="android:textColorSecondary">@color/smartcash_texto_secundario</item>
+        <item name="android:textColorHint">@color/smartcash_pista</item>
+    </style>
+
+    <style name="Theme.SmartCash" parent="Base.Theme.SmartCash" />
+</resources>

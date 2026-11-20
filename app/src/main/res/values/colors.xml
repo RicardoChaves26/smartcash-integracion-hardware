@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="smartcash_primario">#336FFF</color>
+    <color name="smartcash_primario_fondo">#E7EDFF</color>
+    <color name="smartcash_fondo">#F5F7FA</color>
+    <color name="smartcash_superficie">#FFFFFF</color>
+    <color name="smartcash_texto_principal">#263238</color>
+    <color name="smartcash_texto_secundario">#607D8B</color>
+    <color name="smartcash_pista">#90A4AE</color>
+    <color name="smartcash_divisor">#CFD8DC</color>
+    <color name="smartcash_gasto">#B91C1C</color>
+    <color name="smartcash_ingreso">#15803D</color>
+    <color name="smartcash_gasto_fondo">#FEE2E2</color>
+    <color name="smartcash_ingreso_fondo">#DCFCE7</color>
+</resources>
