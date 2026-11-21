@@ -7,5 +7,6 @@ data class Movimiento(
     val monto: Double,
     val categoria: String,
     val fecha: String,
-    val nota: String = ""
+    val nota: String = "",
+    val rutaComprobante: String? = null
 )

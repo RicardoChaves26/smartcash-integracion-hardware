@@ -17,7 +17,7 @@ class SmartCashDbHelper(context: Context) :
 
         const val DATABASE_NAME = "SmartCash.db"
 
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
 
         const val TABLE_MOVIMIENTOS = "movimientos"
 
@@ -28,6 +28,7 @@ class SmartCashDbHelper(context: Context) :
         const val COL_CATEGORIA = "categoria"
         const val COL_FECHA = "fecha"
         const val COL_NOTA = "nota"
+        const val COL_RUTA_COMPROBANTE = "ruta_comprobante"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -39,7 +40,8 @@ class SmartCashDbHelper(context: Context) :
                 $COL_MONTO REAL NOT NULL,
                 $COL_CATEGORIA TEXT NOT NULL,
                 $COL_FECHA TEXT NOT NULL,
-                $COL_NOTA TEXT
+                $COL_NOTA TEXT,
+                $COL_RUTA_COMPROBANTE TEXT
             )
         """.trimIndent()
 
@@ -52,20 +54,40 @@ class SmartCashDbHelper(context: Context) :
         oldVersion: Int,
         newVersion: Int
     ) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_MOVIMIENTOS")
-        onCreate(db)
+
+        // Migración de la versión 1 a la versión 2.
+        // Conserva todos los movimientos existentes.
+        if (oldVersion < 2) {
+
+            db.execSQL(
+                """
+                ALTER TABLE $TABLE_MOVIMIENTOS
+                ADD COLUMN $COL_RUTA_COMPROBANTE TEXT
+                """.trimIndent()
+            )
+        }
     }
 
     private fun insertarDatosEjemplo(db: SQLiteDatabase) {
+
         insertar(db, "Almuerzo en la soda", "Gasto", 3500.0, "Comida", "2026-10-28", "Casado con pollo")
+
         insertar(db, "Compra de supermercado", "Gasto", 28500.0, "Comida", "2026-10-30", "Compras de la semana")
+
         insertar(db, "Bus a la universidad", "Gasto", 1200.0, "Transporte", "2026-10-31", "")
+
         insertar(db, "Gasolina", "Gasto", 15000.0, "Transporte", "2026-11-02", "Tanque medio")
+
         insertar(db, "Pago de electricidad", "Gasto", 22000.0, "Servicios", "2026-11-03", "Recibo de octubre")
+
         insertar(db, "Pago de internet", "Gasto", 18500.0, "Servicios", "2026-11-03", "")
+
         insertar(db, "Pago de salario", "Ingreso", 450000.0, "Salario", "2026-11-05", "Quincena")
+
         insertar(db, "Trabajo freelance", "Ingreso", 60000.0, "Salario", "2026-11-06", "Diseño de logo")
+
         insertar(db, "Cine con amigos", "Gasto", 6000.0, "Entretenimiento", "2026-11-07", "")
+
         insertar(db, "Suscripción de streaming", "Gasto", 5500.0, "Entretenimiento", "2026-11-08", "Plan mensual")
     }
 
@@ -85,6 +107,7 @@ class SmartCashDbHelper(context: Context) :
             put(COL_CATEGORIA, categoria)
             put(COL_FECHA, fecha)
             put(COL_NOTA, nota)
+            putNull(COL_RUTA_COMPROBANTE)
         }
         db.insert(TABLE_MOVIMIENTOS, null, values)
     }

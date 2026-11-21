@@ -3,33 +3,115 @@ package com.example.smartcash.data
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
+import android.database.sqlite.SQLiteException
+import android.util.Log
 import com.example.smartcash.database.SmartCashDbHelper
 import com.example.smartcash.models.Movimiento
+import com.example.smartcash.util.ComprobanteStorage
+import java.io.File
 
 class MovimientosRepository(context: Context) {
 
     private val dbHelper = SmartCashDbHelper(context)
 
+    private val storage = ComprobanteStorage(context)
+
+    companion object {
+        private const val TAG = "MovimientosRepository"
+    }
+
     private fun leerMovimiento(cursor: Cursor): Movimiento {
         return Movimiento(
-            id = cursor.getInt(cursor.getColumnIndexOrThrow(SmartCashDbHelper.COL_ID)),
-            nombre = cursor.getString(cursor.getColumnIndexOrThrow(SmartCashDbHelper.COL_NOMBRE)),
-            tipo = cursor.getString(cursor.getColumnIndexOrThrow(SmartCashDbHelper.COL_TIPO)),
-            monto = cursor.getDouble(cursor.getColumnIndexOrThrow(SmartCashDbHelper.COL_MONTO)),
-            categoria = cursor.getString(cursor.getColumnIndexOrThrow(SmartCashDbHelper.COL_CATEGORIA)),
-            fecha = cursor.getString(cursor.getColumnIndexOrThrow(SmartCashDbHelper.COL_FECHA)),
-            nota = cursor.getString(cursor.getColumnIndexOrThrow(SmartCashDbHelper.COL_NOTA)) ?: ""
+
+            id = cursor.getInt(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_ID
+                )
+            ),
+
+            nombre = cursor.getString(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_NOMBRE
+                )
+            ),
+
+            tipo = cursor.getString(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_TIPO
+                )
+            ),
+
+            monto = cursor.getDouble(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_MONTO
+                )
+            ),
+
+            categoria = cursor.getString(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_CATEGORIA
+                )
+            ),
+
+            fecha = cursor.getString(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_FECHA
+                )
+            ),
+
+            nota = cursor.getString(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_NOTA
+                )
+            ) ?: "",
+
+            rutaComprobante = cursor.getString(
+                cursor.getColumnIndexOrThrow(
+                    SmartCashDbHelper.COL_RUTA_COMPROBANTE
+                )
+            )
         )
     }
 
-    private fun valoresDe(movimiento: Movimiento): ContentValues {
+    private fun valoresDe(
+        movimiento: Movimiento
+    ): ContentValues {
         return ContentValues().apply {
-            put(SmartCashDbHelper.COL_NOMBRE, movimiento.nombre)
-            put(SmartCashDbHelper.COL_TIPO, movimiento.tipo)
-            put(SmartCashDbHelper.COL_MONTO, movimiento.monto)
-            put(SmartCashDbHelper.COL_CATEGORIA, movimiento.categoria)
-            put(SmartCashDbHelper.COL_FECHA, movimiento.fecha)
-            put(SmartCashDbHelper.COL_NOTA, movimiento.nota)
+
+            put(
+                SmartCashDbHelper.COL_NOMBRE,
+                movimiento.nombre
+            )
+
+            put(
+                SmartCashDbHelper.COL_TIPO,
+                movimiento.tipo
+            )
+
+            put(
+                SmartCashDbHelper.COL_MONTO,
+                movimiento.monto
+            )
+
+            put(
+                SmartCashDbHelper.COL_CATEGORIA,
+                movimiento.categoria
+            )
+
+            put(
+                SmartCashDbHelper.COL_FECHA,
+                movimiento.fecha
+            )
+
+            put(
+                SmartCashDbHelper.COL_NOTA,
+                movimiento.nota
+            )
+
+            put(
+                SmartCashDbHelper.COL_RUTA_COMPROBANTE,
+                movimiento.rutaComprobante
+            )
         }
     }
 
@@ -47,66 +129,347 @@ class MovimientosRepository(context: Context) {
         )
 
         cursor.use {
-            return if (it.moveToFirst()) leerMovimiento(it) else null
+            return if (it.moveToFirst()) {
+                leerMovimiento(it)
+            } else {
+                null
+            }
         }
     }
 
+    // Guarda un movimiento con o sin referencia
+    // a una fotografía definitiva.
     fun agregar(movimiento: Movimiento): Long {
-        val db = dbHelper.writableDatabase
 
-        return db.insert(
-            SmartCashDbHelper.TABLE_MOVIMIENTOS,
-            null,
-            valoresDe(movimiento)
+        if (
+            movimiento.rutaComprobante != null &&
+            !storage.existeComprobante(
+                movimiento.rutaComprobante
+            )
+        ) {
+            return -1L
+        }
+
+        return try {
+            val db = dbHelper.writableDatabase
+            db.insert(
+                SmartCashDbHelper.TABLE_MOVIMIENTOS,
+                null,
+                valoresDe(movimiento)
+            )
+
+        } catch (e: SQLiteException) {
+            Log.e(TAG, "Error al agregar movimiento", e)
+            -1L
+        }
+    }
+
+    // Guarda un movimiento utilizando directamente
+    // una fotografía temporal.
+    fun agregarConComprobante(
+        movimiento: Movimiento,
+        archivoTemporal: File
+    ): Long {
+
+        val nuevaRuta =
+            storage.guardarComprobante(archivoTemporal)
+                ?: return -1L
+
+        val resultado = agregar(
+            movimiento.copy(
+                rutaComprobante = nuevaRuta
+            )
+        )
+        if (resultado > 0L) {
+            storage.eliminarTemporal(archivoTemporal)
+        } else {
+            // Si SQLite falla, eliminamos la copia nueva.
+            // Conservamos el temporal para reintentar.
+            eliminarSiNoTieneReferencias(nuevaRuta)
+        }
+        return resultado
+    }
+
+    // Actualización normal.
+    // Conserva el comprobante anterior.
+    fun actualizar(movimiento: Movimiento): Int {
+        return actualizarDatos(
+            movimiento,
+            cambiarComprobante = false
         )
     }
 
-    fun actualizar(movimiento: Movimiento): Int {
+    // Actualiza un movimiento reemplazando
+    // su comprobante por una fotografía nueva.
+    fun actualizarConComprobante(
+        movimiento: Movimiento,
+        archivoTemporal: File
+    ): Int {
+
         if (movimiento.id <= 0) {
             return 0
         }
 
-        val db = dbHelper.writableDatabase
+        val nuevaRuta =
+            storage.guardarComprobante(archivoTemporal)
+                ?: return 0
 
-        return db.update(
-            SmartCashDbHelper.TABLE_MOVIMIENTOS,
-            valoresDe(movimiento),
-            "${SmartCashDbHelper.COL_ID} = ?",
-            arrayOf(movimiento.id.toString())
+        val resultado = actualizarDatos(
+
+            movimiento.copy(
+                rutaComprobante = nuevaRuta
+            ),
+            cambiarComprobante = true
         )
+        if (resultado > 0) {
+            storage.eliminarTemporal(archivoTemporal)
+        } else {
+            eliminarSiNoTieneReferencias(nuevaRuta)
+        }
+        return resultado
+    }
+
+    // Actualiza los datos y quita el comprobante.
+    fun actualizarSinComprobante(
+        movimiento: Movimiento
+    ): Int {
+
+        return actualizarDatos(
+            movimiento.copy(
+                rutaComprobante = null
+            ),
+            cambiarComprobante = true
+        )
+    }
+
+    // Método interno de actualización.
+    private fun actualizarDatos(
+        movimiento: Movimiento,
+        cambiarComprobante: Boolean
+    ): Int {
+
+        if (movimiento.id <= 0) {
+            return 0
+        }
+
+        if (
+            cambiarComprobante &&
+            movimiento.rutaComprobante != null &&
+            !storage.existeComprobante(
+                movimiento.rutaComprobante
+            )
+        ) {
+            return 0
+        }
+
+        var rutaAnterior: String? = null
+        val resultado = try {
+            val db = dbHelper.writableDatabase
+            db.beginTransaction()
+
+            try {
+                val anterior = obtenerPorId(
+                    movimiento.id
+                ) ?: return 0
+                rutaAnterior = anterior.rutaComprobante
+
+                val movimientoFinal =
+                    if (cambiarComprobante) {
+                        movimiento
+                    } else {
+                        movimiento.copy(
+                            rutaComprobante =
+                                anterior.rutaComprobante
+                        )
+                    }
+
+                val filas = db.update(
+
+                    SmartCashDbHelper.TABLE_MOVIMIENTOS,
+
+                    valoresDe(movimientoFinal),
+
+                    "${SmartCashDbHelper.COL_ID} = ?",
+
+                    arrayOf(
+                        movimiento.id.toString()
+                    )
+                )
+                db.setTransactionSuccessful()
+                filas
+            } finally {
+                db.endTransaction()
+            }
+
+        } catch (e: SQLiteException) {
+
+            Log.e(TAG, "Error al actualizar movimiento", e)
+
+            0
+        }
+        // El comprobante anterior se elimina
+        // solo después de confirmar la actualización.
+        if (
+            resultado > 0 &&
+            cambiarComprobante &&
+            rutaAnterior != movimiento.rutaComprobante
+        ) {
+            eliminarSiNoTieneReferencias(rutaAnterior)
+        }
+        return resultado
     }
 
     fun eliminar(id: Int): Int {
         if (id <= 0) {
             return 0
         }
+        var rutaComprobante: String? = null
+        val resultado = try {
+            val db = dbHelper.writableDatabase
+            db.beginTransaction()
+            try {
+                val movimiento = obtenerPorId(id)
+                    ?: return 0
 
-        val db = dbHelper.writableDatabase
+                rutaComprobante =
+                    movimiento.rutaComprobante
 
-        return db.delete(
-            SmartCashDbHelper.TABLE_MOVIMIENTOS,
-            "${SmartCashDbHelper.COL_ID} = ?",
-            arrayOf(id.toString())
-        )
+                val filas = db.delete(
+                    SmartCashDbHelper.TABLE_MOVIMIENTOS,
+                    "${SmartCashDbHelper.COL_ID} = ?",
+                    arrayOf(id.toString())
+                )
+                db.setTransactionSuccessful()
+                filas
+            } finally {
+
+                db.endTransaction()
+            }
+        } catch (e: SQLiteException) {
+            Log.e(TAG, "Error al eliminar movimiento", e)
+            0
+        }
+        // Primero eliminamos el movimiento de SQLite.
+        // Después eliminamos su fotografía.
+        if (resultado > 0) {
+            eliminarSiNoTieneReferencias(
+                rutaComprobante
+            )
+        }
+        return resultado
+    }
+
+    // Evita eliminar fotografías que todavía
+    // estén relacionadas con otro movimiento.
+    private fun eliminarSiNoTieneReferencias(
+        ruta: String?
+    ) {
+        if (ruta.isNullOrBlank()) {
+            return
+        }
+        try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.query(
+
+                SmartCashDbHelper.TABLE_MOVIMIENTOS,
+
+                arrayOf(SmartCashDbHelper.COL_ID),
+
+                "${SmartCashDbHelper.COL_RUTA_COMPROBANTE} = ?",
+
+                arrayOf(ruta),
+
+                null,
+                null,
+                null,
+                "1"
+            )
+            val tieneReferencias = cursor.use {
+
+                it.moveToFirst()
+            }
+            if (
+                !tieneReferencias &&
+                !storage.eliminarComprobante(ruta)
+            ) {
+                Log.w(
+                    TAG,
+                    "No se pudo eliminar el archivo: $ruta"
+                )
+            }
+        } catch (e: SQLiteException) {
+            Log.e(
+                TAG,
+                "Error al comprobar referencias",
+                e
+            )
+        }
     }
 
     fun obtenerRecientes(limite: Int): List<Movimiento> {
-        return emptyList() // TODO persona 2
+        if (limite <= 0) {
+            return emptyList()
+        }
+        val movimientos = mutableListOf<Movimiento>()
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+
+            SmartCashDbHelper.TABLE_MOVIMIENTOS,
+            null,
+            null,
+            null,
+            null,
+            null,
+
+            "${SmartCashDbHelper.COL_FECHA} DESC, " +
+                    "${SmartCashDbHelper.COL_ID} DESC",
+
+            limite.toString()
+        )
+
+        cursor.use {
+            while (it.moveToNext()) {
+                movimientos.add(
+                    leerMovimiento(it)
+                )
+            }
+        }
+        return movimientos
     }
 
     fun total(tipo: String): Double {
-        return 0.0 // TODO persona 2
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+
+            """
+            SELECT COALESCE(
+                SUM(${SmartCashDbHelper.COL_MONTO}), 0
+            )
+            FROM ${SmartCashDbHelper.TABLE_MOVIMIENTOS}
+            WHERE ${SmartCashDbHelper.COL_TIPO} = ?
+            """.trimIndent(),
+
+            arrayOf(tipo)
+        )
+
+        cursor.use {
+            return if (it.moveToFirst()) {
+                it.getDouble(0)
+            } else {
+                0.0
+            }
+        }
     }
 
-
-    // Obtiene movimientos filtrados por mes y categoria.
-    fun obtenerFiltrados(mes: String?, categoria: String?): List<Movimiento> {
+    fun obtenerFiltrados(
+        mes: String?,
+        categoria: String?
+    ): List<Movimiento> {
 
         val movimientos = mutableListOf<Movimiento>()
         val condiciones = mutableListOf<String>()
         val argumentos = mutableListOf<String>()
 
-        // Filtrar por mes si se selecciono uno.
         if (mes != null) {
             condiciones.add(
                 "SUBSTR(${SmartCashDbHelper.COL_FECHA}, 1, 7) = ?"
@@ -114,7 +477,6 @@ class MovimientosRepository(context: Context) {
             argumentos.add(mes)
         }
 
-        // Filtrar por categoria si se selecciono una.
         if (categoria != null) {
             condiciones.add(
                 "${SmartCashDbHelper.COL_CATEGORIA} = ?"
@@ -122,7 +484,6 @@ class MovimientosRepository(context: Context) {
             argumentos.add(categoria)
         }
 
-        // Preparar las condiciones de la consulta.
         val seleccion = if (condiciones.isEmpty()) {
             null
         } else {
@@ -137,7 +498,6 @@ class MovimientosRepository(context: Context) {
 
         val db = dbHelper.readableDatabase
 
-        // Consultar la base de datos.
         val cursor = db.query(
             SmartCashDbHelper.TABLE_MOVIMIENTOS,
             null,
@@ -145,21 +505,22 @@ class MovimientosRepository(context: Context) {
             seleccionArgs,
             null,
             null,
-            "${SmartCashDbHelper.COL_FECHA} DESC, ${SmartCashDbHelper.COL_ID} DESC"
+
+            "${SmartCashDbHelper.COL_FECHA} DESC, " +
+                    "${SmartCashDbHelper.COL_ID} DESC"
         )
 
-        // Recorrer los resultados.
         cursor.use {
             while (it.moveToNext()) {
-                movimientos.add(leerMovimiento(it))
+
+                movimientos.add(
+                    leerMovimiento(it)
+                )
             }
         }
 
         return movimientos
     }
-
-
-
 
     fun obtenerMeses(): List<String> {
         val meses = mutableListOf<String>()
@@ -167,7 +528,11 @@ class MovimientosRepository(context: Context) {
 
         val cursor = db.query(
             SmartCashDbHelper.TABLE_MOVIMIENTOS,
-            arrayOf("SUBSTR(${SmartCashDbHelper.COL_FECHA}, 1, 7) AS mes"),
+
+            arrayOf(
+                "SUBSTR(${SmartCashDbHelper.COL_FECHA}, 1, 7) AS mes"
+            ),
+
             null,
             null,
             "SUBSTR(${SmartCashDbHelper.COL_FECHA}, 1, 7)",
@@ -177,15 +542,20 @@ class MovimientosRepository(context: Context) {
 
         cursor.use {
             while (it.moveToNext()) {
-                meses.add(it.getString(it.getColumnIndexOrThrow("mes")))
+
+                meses.add(
+                    it.getString(
+                        it.getColumnIndexOrThrow("mes")
+                    )
+                )
             }
         }
 
         return meses
     }
 
-
     fun cerrar() {
+
         dbHelper.close()
     }
 }
