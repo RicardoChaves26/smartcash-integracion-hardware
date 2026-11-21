@@ -55,8 +55,6 @@ class SmartCashDbHelper(context: Context) :
         newVersion: Int
     ) {
 
-        // Migración de la versión 1 a la versión 2.
-        // Conserva todos los movimientos existentes.
         if (oldVersion < 2) {
 
             db.execSQL(

@@ -137,8 +137,6 @@ class MovimientosRepository(context: Context) {
         }
     }
 
-    // Guarda un movimiento con o sin referencia
-    // a una fotografía definitiva.
     fun agregar(movimiento: Movimiento): Long {
 
         if (
@@ -164,8 +162,6 @@ class MovimientosRepository(context: Context) {
         }
     }
 
-    // Guarda un movimiento utilizando directamente
-    // una fotografía temporal.
     fun agregarConComprobante(
         movimiento: Movimiento,
         archivoTemporal: File
@@ -183,15 +179,11 @@ class MovimientosRepository(context: Context) {
         if (resultado > 0L) {
             storage.eliminarTemporal(archivoTemporal)
         } else {
-            // Si SQLite falla, eliminamos la copia nueva.
-            // Conservamos el temporal para reintentar.
             eliminarSiNoTieneReferencias(nuevaRuta)
         }
         return resultado
     }
 
-    // Actualización normal.
-    // Conserva el comprobante anterior.
     fun actualizar(movimiento: Movimiento): Int {
         return actualizarDatos(
             movimiento,
@@ -199,8 +191,6 @@ class MovimientosRepository(context: Context) {
         )
     }
 
-    // Actualiza un movimiento reemplazando
-    // su comprobante por una fotografía nueva.
     fun actualizarConComprobante(
         movimiento: Movimiento,
         archivoTemporal: File
@@ -229,7 +219,6 @@ class MovimientosRepository(context: Context) {
         return resultado
     }
 
-    // Actualiza los datos y quita el comprobante.
     fun actualizarSinComprobante(
         movimiento: Movimiento
     ): Int {
@@ -242,7 +231,6 @@ class MovimientosRepository(context: Context) {
         )
     }
 
-    // Método interno de actualización.
     private fun actualizarDatos(
         movimiento: Movimiento,
         cambiarComprobante: Boolean
@@ -307,8 +295,7 @@ class MovimientosRepository(context: Context) {
 
             0
         }
-        // El comprobante anterior se elimina
-        // solo después de confirmar la actualización.
+
         if (
             resultado > 0 &&
             cambiarComprobante &&
@@ -349,8 +336,7 @@ class MovimientosRepository(context: Context) {
             Log.e(TAG, "Error al eliminar movimiento", e)
             0
         }
-        // Primero eliminamos el movimiento de SQLite.
-        // Después eliminamos su fotografía.
+
         if (resultado > 0) {
             eliminarSiNoTieneReferencias(
                 rutaComprobante
@@ -359,8 +345,6 @@ class MovimientosRepository(context: Context) {
         return resultado
     }
 
-    // Evita eliminar fotografías que todavía
-    // estén relacionadas con otro movimiento.
     private fun eliminarSiNoTieneReferencias(
         ruta: String?
     ) {

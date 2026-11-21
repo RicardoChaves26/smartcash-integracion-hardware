@@ -22,7 +22,6 @@ class ComprobanteStorage(context: Context) {
         private const val TAG = "ComprobanteStorage"
     }
 
-    // Obtiene o crea la carpeta definitiva.
     private fun carpetaComprobantes(): File {
 
         val carpeta = File(
@@ -44,7 +43,6 @@ class ComprobanteStorage(context: Context) {
         return carpeta
     }
 
-    // Obtiene o crea la carpeta temporal.
     private fun carpetaTemporales(): File {
 
         val carpeta = File(
@@ -66,8 +64,6 @@ class ComprobanteStorage(context: Context) {
         return carpeta
     }
 
-    // Crea un archivo para que la cámara
-    // almacene temporalmente una fotografía.
     fun crearTemporal(): File? {
 
         return try {
@@ -86,7 +82,6 @@ class ComprobanteStorage(context: Context) {
         }
     }
 
-    // Comprueba que el archivo sea una imagen reconocible.
     private fun esImagenValida(archivo: File): Boolean {
 
         if (!archivo.isFile || archivo.length() == 0L) {
@@ -106,17 +101,12 @@ class ComprobanteStorage(context: Context) {
                 opciones.outHeight > 0
     }
 
-    // Comprueba que el archivo temporal pertenezca
-    // a la carpeta administrada por SmartCash.
     private fun esTemporalPropio(archivo: File): Boolean {
 
         return archivo.canonicalFile.parentFile ==
                 carpetaTemporales().canonicalFile
     }
 
-    // Copia una fotografía temporal al
-    // almacenamiento definitivo.
-    // Devuelve únicamente el nombre del archivo.
     fun guardarComprobante(archivoTemporal: File): String? {
 
         var destino: File? = null
@@ -154,7 +144,6 @@ class ComprobanteStorage(context: Context) {
         }
     }
 
-    // Recupera el archivo de una fotografía guardada.
     fun obtenerArchivo(rutaComprobante: String?): File? {
 
         if (rutaComprobante.isNullOrBlank()) {
@@ -199,8 +188,6 @@ class ComprobanteStorage(context: Context) {
         }
     }
 
-    // Comprueba que el comprobante exista
-    // y tenga información.
     fun existeComprobante(rutaComprobante: String?): Boolean {
 
         val archivo = obtenerArchivo(rutaComprobante)
@@ -208,7 +195,6 @@ class ComprobanteStorage(context: Context) {
         return archivo != null && archivo.length() > 0L
     }
 
-    // Elimina una fotografía del almacenamiento definitivo.
     fun eliminarComprobante(rutaComprobante: String?): Boolean {
 
         if (rutaComprobante.isNullOrBlank()) {
@@ -250,7 +236,6 @@ class ComprobanteStorage(context: Context) {
         }
     }
 
-    // Elimina un archivo temporal descartado.
     fun eliminarTemporal(archivoTemporal: File?): Boolean {
 
         if (archivoTemporal == null) {
