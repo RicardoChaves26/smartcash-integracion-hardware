@@ -184,6 +184,67 @@
 
             </LinearLayout>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/smartcash_divisor" />
+
+            <!-- Comprobante -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    style="@style/Estilo.Secundario"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Comprobante fotográfico"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Contenedor cuando hay imagen -->
+                <LinearLayout
+                    android:id="@+id/layoutComprobanteImagen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:id="@+id/imgComprobanteMiniatura"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Miniatura del comprobante"
+                        android:background="@color/smartcash_divisor"/>
+
+                    <Button
+                        android:id="@+id/btnVerComprobante"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Ver comprobante" />
+                </LinearLayout>
+
+                <!-- Mensaje cuando no hay imagen -->
+                <TextView
+                    android:id="@+id/txtSinComprobante"
+                    style="@style/Estilo.Cuerpo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sin comprobante"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:drawableTop="@drawable/ic_comprobante"
+                    android:drawablePadding="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </ScrollView>
@@ -199,19 +260,19 @@
         android:paddingBottom="20dp">
 
         <!-- Editar movimiento -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnEditarMovimiento"
             style="@style/Estilo.Boton.Primario"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="55dp"
             android:text="@string/detalle_editar" />
 
         <!-- Eliminar movimiento -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnEliminarMovimiento"
             style="@style/Estilo.Boton.Peligro"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="55dp"
             android:layout_marginTop="8dp"
             android:text="@string/detalle_eliminar" />
 

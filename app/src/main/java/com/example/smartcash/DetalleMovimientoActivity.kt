@@ -12,10 +12,15 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.smartcash.data.MovimientosRepository
 import com.example.smartcash.models.Movimiento
 import com.example.smartcash.util.Ventana
-import com.google.android.material.button.MaterialButton
+import android.widget.Button
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+import android.view.View
+import java.io.File
+import com.example.smartcash.util.ComprobanteStorage
+import com.example.smartcash.util.ComprobanteViewer
 
 class DetalleMovimientoActivity : AppCompatActivity() {
 
@@ -43,10 +48,10 @@ class DetalleMovimientoActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.txtTituloBarra).text = "Detalle"
 
-        findViewById<MaterialButton>(R.id.btnEditarMovimiento)
+        findViewById<Button>(R.id.btnEditarMovimiento)
             .setOnClickListener { editarMovimiento() }
 
-        findViewById<MaterialButton>(R.id.btnEliminarMovimiento)
+        findViewById<Button>(R.id.btnEliminarMovimiento)
             .setOnClickListener { confirmarEliminacion() }
 
         if (movimientoId <= 0) {
@@ -170,6 +175,65 @@ class DetalleMovimientoActivity : AppCompatActivity() {
 
         findViewById<ImageView>(R.id.imgDetalleCategoria)
             .setImageResource(icono)
+
+        // Manejo del comprobante fotográfico
+        val layoutComprobanteImagen = findViewById<View>(R.id.layoutComprobanteImagen)
+        val txtSinComprobante = findViewById<TextView>(R.id.txtSinComprobante)
+        val imgComprobanteMiniatura = findViewById<ImageView>(R.id.imgComprobanteMiniatura)
+        val btnVerComprobante = findViewById<Button>(R.id.btnVerComprobante)
+
+        if (movimiento.rutaComprobante.isNullOrEmpty()) {
+            layoutComprobanteImagen.visibility = View.GONE
+            txtSinComprobante.visibility = View.VISIBLE
+            txtSinComprobante.text = "Sin comprobante"
+        } else {
+            val storage = ComprobanteStorage(this)
+            val archivo = storage.obtenerArchivo(movimiento.rutaComprobante)
+
+            val resultado = ComprobanteViewer.cargarEn(imgComprobanteMiniatura, archivo)
+
+            when (resultado) {
+                ComprobanteViewer.Resultado.EXITO -> {
+                    layoutComprobanteImagen.visibility = View.VISIBLE
+                    txtSinComprobante.visibility = View.GONE
+
+                    val clickListener = View.OnClickListener {
+                        mostrarDialogoComprobante(archivo)
+                    }
+                    imgComprobanteMiniatura.setOnClickListener(clickListener)
+                    btnVerComprobante.setOnClickListener(clickListener)
+                }
+                ComprobanteViewer.Resultado.AUSENTE -> {
+                    layoutComprobanteImagen.visibility = View.GONE
+                    txtSinComprobante.visibility = View.VISIBLE
+                    txtSinComprobante.text = "Sin comprobante"
+                }
+                ComprobanteViewer.Resultado.DANADO -> {
+                    layoutComprobanteImagen.visibility = View.GONE
+                    txtSinComprobante.visibility = View.VISIBLE
+                    txtSinComprobante.text = "Comprobante dañado"
+                    Toast.makeText(this, "El archivo de imagen está dañado", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun mostrarDialogoComprobante(archivo: File?) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_comprobante, null)
+        val imgAmpliada = dialogView.findViewById<ImageView>(R.id.imgComprobanteAmpliado)
+        val btnCerrar = dialogView.findViewById<Button>(R.id.btnCerrarComprobante)
+
+        val dialog = AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+            .setView(dialogView)
+            .create()
+
+        ComprobanteViewer.cargarEn(imgAmpliada, archivo)
+
+        btnCerrar.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     // Abre el formulario de edición con el mismo ID.
